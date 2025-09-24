@@ -8,6 +8,28 @@ source("Rselection_source_functions.R")
 load("sim_example_t3_sigma3.RData")
 freq <- seq(0, 1, length = 97) 
 
+# pre-smoothing
+h.cv0 <- 1 # find the optimal
+dat.ker0 <- matrix(nrow=nrow(dat),ncol=ncol(dat))
+for (i in 1:nrow(dat)) {
+  tmp <- locpoly(x = freq[which(delta[i,]==1)], y = par.dat[i,which(delta[i,]==1)], 
+                 kernel = 'epanech', bandwidth = h.cv0, degree = 1,  
+                 range.x = range(freq), 
+                 gridsize = length(freq))$y
+  dat.ker0[i, which(delta[i,]==1)] <- tmp[which(delta[i,]==1)]
+}
+
+## l=1 (pre-smoothing)
+h.cv1 <- 1.5 # find the optimal
+dat.ker1 <- matrix(nrow=nrow(dat),ncol=ncol(dat))
+for (i in 1:nrow(dat)) {
+  tmp <- locpoly(x = freq[which(delta[i,]==1)], y = par.dat[i,which(delta[i,]==1)], 
+                 kernel = 'epanech', bandwidth = h.cv1, degree = 1, drv = 1,
+                 range.x = range(freq), 
+                 gridsize = length(freq))$y
+  dat.ker1[i, which(delta[i,]==1)] <- tmp[which(delta[i,]==1)]
+}
+
 n=50
 
 ######################################################################
@@ -19,8 +41,8 @@ n=50
 ######################################################################
 
 # order 0 
-dat.1 <- dat[1:n,]
-dat.2<- dat[(n+1):(2*n),]
+dat.1 <- dat.ker0[1:n,]
+dat.2<- dat.ker0[(n+1):(2*n),]
 
   dat.1.xy <- data.frame(cbind(rep(freq, n),as.vector(t(dat.1))))
   dat.1.xy <- dat.1.xy[!is.na(dat.1.xy[,2]), ]
@@ -103,14 +125,8 @@ for(j in 1:length(diff.mean.0)){
 
 ####################################################################
 # order 1
-deriv.dat = c()
-for(j in 1:(length(freq)-1)){
-  deriv.dat = cbind(deriv.dat, (dat[,j+1]-dat[,j])/(freq[j+1]-freq[j]))
-}
-
-dat = deriv.dat
-dat.1 <- dat[1:n,]
-dat.2<- dat[(n+1):(2*n),]
+dat.1 <- dat.ker1[1:n,]
+dat.2<- dat.ker1[(n+1):(2*n),]
 
  dat.1.xy <- data.frame(cbind(rep(freq, n),as.vector(t(dat.1))))
   dat.1.xy <- dat.1.xy[!is.na(dat.1.xy[,2]), ]

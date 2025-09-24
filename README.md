@@ -1,7 +1,8 @@
 Code for "Robust domain selection for functional data via interval-wise testing and effect size mapping"
 
 "Rselection_source_functions.R"
- : source code to implement robust domain selection
+ : source code to implement robust domain selection, specifically including functions for (i) functional M-estimator using penalized spline functions under Huber loss functions, and (ii) computation of adjusted p-value functions 
+
 
 "group_mean_functions.RData"
  : R data containing $\mu_1(t)$ and $\mu_2(t)$ in sumulation study of Section 3

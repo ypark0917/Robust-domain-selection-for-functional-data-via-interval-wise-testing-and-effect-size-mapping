@@ -1,4 +1,46 @@
 
+########################################################################
+## penalized-spline-based functional M-estimator with robust loss functions
+########################################################################
+robust_smooth_spline <- function(dat.xy, df = 10, max_iter = 50, delta = 1.345, tol = 1e-4, spar = 0.1, verbose = FALSE) {
+  x <- dat.xy[,1]
+  y <- dat.xy[,2]
+  n <- length(y)
+  
+  # Step 1: initial fit with L2 loss
+  fit <- smooth.spline(x, y, df = df, cv = FALSE, spar = spar)
+  yhat <- predict(fit, x)$y
+  
+  for (iter in 1:max_iter) {
+    # Step 2: compute residuals
+    res <- y - yhat
+    
+    # Step 3: compute Huber weights
+    w <- ifelse(abs(res) <= delta,
+                1,           # quadratic region
+                delta / abs(res))  # linear region
+    
+    # Step 4: weighted smooth spline fit
+    fit_new <- smooth.spline(x, y, w = w, df = df, cv = FALSE, spar = spar)
+    yhat_new <- predict(fit_new, x)$y
+    
+    # Step 5: check convergence
+    if (sqrt(mean((yhat_new - yhat)^2)) < tol) {
+      if (verbose) cat("Converged at iteration", iter, "\n")
+      break
+    }
+    
+    # Step 6: update
+    yhat <- yhat_new
+    fit <- fit_new
+  }
+  
+  return(list(fit = fit, fitted.values = yhat, weights = w))
+}
+
+
+
+
 ###########################################################
 ##  A part of source code borrowed from
 ## "Interval-wise testing for functional data." by Pini and Vantini (2017). Journal of Nonparametric Statistics 29(2), 407–424.
